@@ -1,4 +1,5 @@
 require 'pdf-reader'
+require 'date'
 
 pdf_paths = [
   "./pdfs/17423_2019-07-08_N11.pdf",
@@ -58,8 +59,10 @@ for index in 0 ... pdf_paths.size
         end
         #find "date" and set
         if lines[i].gsub(/\s+/, " ").strip.include? "Date of Notice:"
-          start_idx = lines[i].index("Date of Notice:")
-          date = lines[i][start_idx+16..lines[i].size]
+          str_pattern = "Date of Notice:"
+          start_idx = lines[i].index(str_pattern)
+          date_str = lines[i][start_idx+str_pattern.size..lines[i].size].strip
+          date = Date.strptime(date_str, '%m/%d/%Y').strftime('%Y-%m-%d')
         end
     end
     puts result = {
