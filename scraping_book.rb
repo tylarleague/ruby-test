@@ -27,13 +27,17 @@ for index in 0 ... pdf_paths.size
   reader.pages.each do |page|
     #find pdf file contains "Judgment for Costs of Appointed Attorney"
     if page.text.gsub(/\s+/, " ").strip.include? "Judgment for Costs of Appointed Attorney"
-      # puts page.text
       lines = page.text.split("\n")
       is_set = false
       for i in 0...lines.size
         #find "Petitioner" and set
         if (lines[i].gsub(/\s+/, " ").strip.include? "Petitioner,") && is_set == false
-          petitioner = lines[i-1].split(",")[0].strip
+          if lines[i-1].strip.include? ".,"
+            petitioner = lines[i-1].strip[0...lines[i-1].index(".,")]
+          elsif
+            lines[i-1].strip.include? ","
+            petitioner = lines[i-1].split(",")[0].strip
+          end
           is_set = true
         end
         #find "State of" and set
@@ -45,12 +49,11 @@ for index in 0 ... pdf_paths.size
         #find "amount" and set
         if lines[i].gsub(/\s+/, " ").strip.include? "$"
           start_idx = lines[i].index("$")
-          end_idx = lines[i].index("the amount")
-          
-          if (start_idx != nil) && (end_idx != nil) && (start_idx < end_idx) 
-            amount = lines[i][start_idx..end_idx-5]
-          else 
-            amount = 0
+          sub_str = lines[i][start_idx..lines[i].size]
+          for k in 1...sub_str.size
+            if sub_str[k].match?(/[[:digit:]]/) && (sub_str[k+1] == '.' || sub_str[k+1] == ',') && (sub_str[k+2] == ' ')
+              amount = sub_str[0...k+1]
+            end
           end
         end
         #find "date" and set
@@ -65,6 +68,7 @@ for index in 0 ... pdf_paths.size
       ":amount" => amount,
       ":date" => date
     }
+    amount = 0
     end
   end
 end
