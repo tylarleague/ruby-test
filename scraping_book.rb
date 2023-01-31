@@ -27,27 +27,30 @@ for index in 0 ... pdf_paths.size
   reader.pages.each do |page|
     #find pdf file contains "Judgment for Costs of Appointed Attorney"
     if page.text.gsub(/\s+/, " ").strip.include? "Judgment for Costs of Appointed Attorney"
+      # puts page.text
       lines = page.text.split("\n")
       is_set = false
       for i in 0...lines.size
         #find "Petitioner" and set
-        if (lines[i].gsub(/\s+/, " ").strip.include? "Petitioner") && is_set == false
-          petitioner = lines[i-1].split(",")[0]
+        if (lines[i].gsub(/\s+/, " ").strip.include? "Petitioner,") && is_set == false
+          petitioner = lines[i-1].split(",")[0].strip
           is_set = true
-          puts(is_set)
         end
         #find "State of" and set
-        if lines[i].gsub(/\s+/, " ").strip.include? "State of"
-          start_idx = lines[i].index("State of")
+        if lines[i].gsub(/\s+/, " ").strip.include? "In the Supreme Court of the "
+          str_pattern = "In the Supreme Court of the "
+          start_idx = lines[i].index(str_pattern) + str_pattern.size
           state = lines[i][start_idx..lines[i].size]
         end
         #find "amount" and set
         if lines[i].gsub(/\s+/, " ").strip.include? "$"
           start_idx = lines[i].index("$")
-          end_idx = lines[i].index(",")
+          end_idx = lines[i].index("the amount")
           
-          if (start_idx < end_idx)
-            amount = lines[i][start_idx..end_idx]
+          if (start_idx != nil) && (end_idx != nil) && (start_idx < end_idx) 
+            amount = lines[i][start_idx..end_idx-5]
+          else 
+            amount = 0
           end
         end
         #find "date" and set
